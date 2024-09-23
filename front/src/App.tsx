@@ -2,6 +2,8 @@ import {BrowserRouter, Routes, Route} from 'react-router-dom'
 import { HomeView } from './views/home/home-view'
 import { BooksView, OrdersView, TasksView, ProfileView } from './views'
 import { Footer, Navbar } from './components'
+
+
 function App() {
   
   return (
@@ -9,12 +11,12 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<HomeView/>} />
-        <Route path="/tasks" element={<TasksView/>} />
-        <Route path="/orders" element={<OrdersView/>} />
-        <Route path="/books" element={<BooksView/>} />
-        <Route path="/profile" element={<ProfileView/>} />
+        <Route path="/tareas" element={<TasksView/>} />
+        <Route path="/pedidos" element={<OrdersView/>} />
+        <Route path="/libros" element={<BooksView/>} />
+        <Route path="/perfil" element={<ProfileView/>} />
       </Routes>
-      <Footer />
+      {/* <Footer /> */}
     </BrowserRouter>
   )
 }

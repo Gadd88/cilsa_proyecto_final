@@ -1,6 +1,6 @@
 
 export const HomeView = () => {
   return (
-    <main>home-view</main>
+    <main className="h-full">home-view</main>
   )
 }
