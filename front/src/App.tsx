@@ -14,9 +14,9 @@ function App() {
         <Route path="/tareas" element={<TasksView/>} />
         <Route path="/pedidos" element={<OrdersView/>} />
         <Route path="/libros" element={<BooksView/>} />
-        <Route path="/perfil" element={<ProfileView/>} />
+        {/* <Route path="/perfil" element={<ProfileView/>} /> */}
       </Routes>
-      {/* <Footer /> */}
+      <Footer />
     </BrowserRouter>
   )
 }
