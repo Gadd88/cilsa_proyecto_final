@@ -1,18 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaCirclePlus } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { FaPlus } from "react-icons/fa6";
-
+import libraryData from "../../../../books.json";
 
 export const BooksView = () => {
+  //estado de los botones de precio y fecha
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [recentFilter, setRecentFilter] = useState<string | null>(null);
+
+  //estado para la lista de generos a la izquierda
+  const [genres, setGenres] = useState<{ genre: string; count: number }[]>([]);
+  const [genreFilter, setGenreFilter] = useState<string | null>(null);
 
   const [isPriceDropdownOpen, setIsPriceDropdownOpen] =
     useState<boolean>(false);
   const [isRecentDropdownOpen, setIsRecentDropdownOpen] =
     useState<boolean>(false);
+
+  useEffect(() => {
+    // cuenta de libros por género
+    const genreCount: { [key: string]: number } = {};
+
+    libraryData.library.forEach((entry) => {
+      const genre = entry.book.genre;
+      genreCount[genre] = (genreCount[genre] || 0) + 1;
+    });
+
+    const sortedGenres = Object.entries(genreCount)
+      .map(([genre, count]) => ({ genre, count }))
+      .sort((a, b) => a.count - b.count);
+
+    setGenres(sortedGenres);
+  }, []);
 
   const handlePriceFilterChange = (filter: string) => {
     setPriceFilter((prev) => (prev === filter ? null : filter));
@@ -25,30 +46,29 @@ export const BooksView = () => {
   };
 
   return (
-    <main className="h-full flex justify-between">
+    <main className="h-full flex justify-between overflow-hidden">
       <section className="w-1/6 h-full flex flex-col py-2 px-4">
-        <h1 className="text-2xl">Género</h1>
+        <h1 className="text-xl">Género</h1>
         <div className="divider my-2"></div>
         <ul className="text-sm flex flex-col gap-2 [&>li]:cursor-pointer">
-          <li className="flex w-full justify-between items-center">
-            Terror psicológico
+          {genres.map((genre, index) => (
+            <li
+              key={index}
+              className="flex w-full justify-between items-center hover:scale-105 transition-all hover:text-primary"
+              onClick={() => setGenreFilter(genre.genre)}
+            >
+              {genre.genre}
+              <span className="divider flex-grow mx-4 my-0 h-full"></span>
+              {genre.count}
+            </li>
+          ))}
+          <li
+            className="flex w-full justify-between items-center hover:scale-105 transition-all hover:text-primary"
+            onClick={() => setGenreFilter(null)}
+          >
+            Todos los libros
             <span className="divider flex-grow mx-4 my-0 h-full"></span>
-            20
-          </li>
-          <li className="flex w-full justify-between items-center">
-            Terror y fantasía
-            <span className="divider flex-grow mx-4 my-0 h-full"></span>
-            20
-          </li>
-          <li className="flex w-full justify-between items-center">
-            Literatura clásica
-            <span className="divider flex-grow mx-4 my-0 h-full"></span>
-            20
-          </li>
-          <li className="flex w-full justify-between items-center">
-            Historia y política
-            <span className="divider flex-grow mx-4 my-0 h-full"></span>
-            20
+            {libraryData.library.length}
           </li>
         </ul>
       </section>
@@ -132,8 +152,8 @@ export const BooksView = () => {
                       <p>Menos Recientes</p>
                       <input
                         type="checkbox"
-                        checked={recentFilter === "menos"}
-                        onChange={() => handleRecentFilterChange("menos")}
+                        checked={recentFilter === "menos"} 
+                        onChange={() => handleRecentFilterChange("menos")} 
                       />
                     </label>
                   </li>
@@ -142,8 +162,8 @@ export const BooksView = () => {
                       <p>Más Recientes</p>
                       <input
                         type="checkbox"
-                        checked={recentFilter === "más"}
-                        onChange={() => handleRecentFilterChange("más")}
+                        checked={recentFilter === "mas"} 
+                        onChange={() => handleRecentFilterChange("mas")} 
                       />
                     </label>
                   </li>
@@ -163,7 +183,49 @@ export const BooksView = () => {
               </button>
             )}
           </div>
-          <FaPlus size={26} className="cursor-pointer"/>
+          <FaPlus size={26} className="cursor-pointer" />
+        </div>
+       
+        <div className="grid grid-cols-4 gap-6 py-4 px-2 overflow-auto">
+          {libraryData.library
+            .filter((bookData) => {
+              const book = bookData.book;
+              
+              if (genreFilter && book.genre !== genreFilter) {
+                return false;
+              }
+              return true; 
+            })
+            .sort((a, b) => {
+              const bookA = a.book;
+              const bookB = b.book;
+              
+              let priceComparison = 0;
+              if (priceFilter === "menor") {
+                priceComparison = bookA.price - bookB.price; 
+              } else if (priceFilter === "mayor") {
+                priceComparison = bookB.price - bookA.price; 
+              }
+
+              
+              if (priceComparison === 0) {
+                if (recentFilter === "mas") {
+                  return bookB.year - bookA.year; 
+                } else if (recentFilter === "menos") {
+                  return bookA.year - bookB.year;
+                }
+              }
+
+              return priceComparison; 
+            })
+            .map((bookData, index) => (
+              <div
+                key={index}
+                className="w-full h-96 bg-cover bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
+                style={{ backgroundImage: `url(${bookData.book.cover})` }}
+                title={bookData.book.title}
+              />
+            ))}
         </div>
       </section>
     </main>
