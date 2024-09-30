@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaCirclePlus } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
@@ -6,13 +6,48 @@ import { FaPlus } from "react-icons/fa6";
 import libraryData from "../../../../books.json";
 
 export const BooksView = () => {
+
+  interface Author {
+    name: string;
+    otherBooks: string[];
+  }
+  
+  interface Book {
+    title: string;
+    pages: number;
+    genre: string;
+    cover: string;
+    synopsis: string;
+    year: number;
+    ISBN: string;
+    price: number;
+    author: Author;
+  }
+  
   //estado de los botones de precio y fecha
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [recentFilter, setRecentFilter] = useState<string | null>(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
   //estado para la lista de generos a la izquierda
   const [genres, setGenres] = useState<{ genre: string; count: number }[]>([]);
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
+
+  //boton para abrir el modal
+
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  const openModal = () => {
+    if (modalRef.current) {
+      modalRef.current.showModal();
+    }
+  };
+
+  const closeModal = () => {
+    if (modalRef.current) {
+      modalRef.current.close();
+    }
+  };
 
   const [isPriceDropdownOpen, setIsPriceDropdownOpen] =
     useState<boolean>(false);
@@ -48,7 +83,7 @@ export const BooksView = () => {
   return (
     <main className="h-full flex justify-between overflow-hidden">
       <section className="w-1/6 h-full flex flex-col py-2 px-4">
-        <h1 className="text-xl">Género</h1>
+        <h1 className="text-xl">Géneros</h1>
         <div className="divider my-2"></div>
         <ul className="text-sm flex flex-col gap-2 [&>li]:cursor-pointer">
           {genres.map((genre, index) => (
@@ -152,8 +187,8 @@ export const BooksView = () => {
                       <p>Menos Recientes</p>
                       <input
                         type="checkbox"
-                        checked={recentFilter === "menos"} 
-                        onChange={() => handleRecentFilterChange("menos")} 
+                        checked={recentFilter === "menos"}
+                        onChange={() => handleRecentFilterChange("menos")}
                       />
                     </label>
                   </li>
@@ -162,8 +197,8 @@ export const BooksView = () => {
                       <p>Más Recientes</p>
                       <input
                         type="checkbox"
-                        checked={recentFilter === "mas"} 
-                        onChange={() => handleRecentFilterChange("mas")} 
+                        checked={recentFilter === "mas"}
+                        onChange={() => handleRecentFilterChange("mas")}
                       />
                     </label>
                   </li>
@@ -183,40 +218,39 @@ export const BooksView = () => {
               </button>
             )}
           </div>
-          <FaPlus size={26} className="cursor-pointer" />
+          <FaPlus size={26} className="cursor-pointer" onClick={openModal} />
         </div>
-       
+
         <div className="grid grid-cols-4 gap-6 py-4 px-2 overflow-auto">
           {libraryData.library
             .filter((bookData) => {
               const book = bookData.book;
-              
+
               if (genreFilter && book.genre !== genreFilter) {
                 return false;
               }
-              return true; 
+              return true;
             })
             .sort((a, b) => {
               const bookA = a.book;
               const bookB = b.book;
-              
+
               let priceComparison = 0;
               if (priceFilter === "menor") {
-                priceComparison = bookA.price - bookB.price; 
+                priceComparison = bookA.price - bookB.price;
               } else if (priceFilter === "mayor") {
-                priceComparison = bookB.price - bookA.price; 
+                priceComparison = bookB.price - bookA.price;
               }
 
-              
               if (priceComparison === 0) {
                 if (recentFilter === "mas") {
-                  return bookB.year - bookA.year; 
+                  return bookB.year - bookA.year;
                 } else if (recentFilter === "menos") {
                   return bookA.year - bookB.year;
                 }
               }
 
-              return priceComparison; 
+              return priceComparison;
             })
             .map((bookData, index) => (
               <div
@@ -224,9 +258,88 @@ export const BooksView = () => {
                 className="w-full h-96 bg-cover bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
                 style={{ backgroundImage: `url(${bookData.book.cover})` }}
                 title={bookData.book.title}
+                onClick={() => {
+                  setSelectedBook(bookData.book);
+                  openModal();
+                }}
               />
             ))}
         </div>
+        {/* Modal */}
+        <dialog id="my_modal_3" ref={modalRef} className="modal h-full w-full">
+          <div className="modal-box max-w-2xl">
+            <button
+              className="btn btn-sm btn-ghost absolute right-2 top-2"
+              onClick={closeModal}
+            >
+              ✕
+            </button>
+
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="w-full md:w-1/3 flex justify-center items-center">
+                <img
+                  src={selectedBook?.cover}
+                  alt={`Cover of ${selectedBook?.title}`}
+                  className="max-w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+
+              <div className="w-full md:w-2/3 text-left">
+                {/* Título del libro */}
+                <h2 className="text-2xl font-bold mb-5">
+                  {selectedBook?.title}
+                </h2>
+
+                {/* Autor */}
+                <p className="text-sm mb-3">
+                  <span className="font-semibold">Author:</span>{" "}
+                  {selectedBook?.author?.name}
+                </p>
+
+                {/* Sinopsis */}
+                <p className="text-base italic mb-5">
+                  {selectedBook?.synopsis}
+                </p>
+                
+                <div className="gap-5">
+                  {/* Género */}
+                  <p className="text-sm mb-3">
+                    <span className="font-semibold">Género:</span>{" "}
+                    {selectedBook?.genre}
+                  </p>
+                </div>
+
+                <p className="text-sm mb-3">
+                  <span className="font-semibold">ISBN:</span>{" "}
+                  {selectedBook?.ISBN}
+                </p>
+                
+                {/* Páginas y Año */}
+                <p className="text-sm mb-3">
+                  <span className="font-semibold">Cant. Páginas: {selectedBook?.pages} </span>
+                </p>
+
+                <p className="mb-3">
+                  <span className="font-semibold">Publicación: {selectedBook?.year}</span>
+                </p>
+
+                {/* Cod ISBN */}
+
+                {/* Stock y precio */}
+                <div className="flex justify-between items-center mt-4">
+                  <p className="text-xl font-bold text-right"> Precio:
+                    {selectedBook?.price
+                      ? ` $${selectedBook?.price.toFixed(2)}`
+                      : "Price not available"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button>close</button>
+          </form>
+        </dialog>
       </section>
     </main>
   );
