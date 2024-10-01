@@ -45,8 +45,8 @@ const BookSchema = new Schema({
 })
 
 BookSchema.methods.toJSON = function() {
-   const { __v, _id, ...book  }  = this.toObject()
-   return { book, _id: _id}
+   const { __v,...book  }  = this.toObject()
+   return { ...book }
 }
 
 const BookModel = model('books', BookSchema)

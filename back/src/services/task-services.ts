@@ -1,4 +1,5 @@
 import TaskModel from "../models/task-model";
+import UserModel from "../models/user-model";
 
 export type TaskType = {
     nombre:string,
@@ -40,6 +41,9 @@ export const addOneTask = async (taskData: TaskType) => {
     const { nombre, descripcion, estado, fecha_creacion, usuario_id } = taskData;
     const newTask = new TaskModel({ nombre, descripcion, estado, fecha_creacion,usuario_id });
     await newTask.save();
+    const user = await UserModel.findById(usuario_id)
+    user!.tasks.push(newTask._id)
+    await user?.save()
     return {
         status: 201,
         newTask
@@ -47,7 +51,15 @@ export const addOneTask = async (taskData: TaskType) => {
 }
 
 export const deleteOneTask = async (taskId: string) => {
-    const task = await TaskModel.findByIdAndDelete(taskId);
+    const task = await TaskModel.findById(taskId);
+    if(!task) return {
+        status: 404
+    }
+    await UserModel.findByIdAndUpdate(
+       {_id: task!.usuario_id},
+        { $pull: { tasks: task._id } }
+    )
+    await TaskModel.findByIdAndDelete(taskId);
     return {
         status: 200
     }
