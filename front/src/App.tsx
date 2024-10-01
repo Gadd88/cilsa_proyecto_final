@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HomeView } from "./views/home/home-view";
-import { BooksView, OrdersView, TasksView, ProfileView } from "./views";
+import { BooksView, OrdersView, TasksView } from "./views";
 import { Footer, Navbar } from "./components";
+import { BookProvider } from "./context/books-context";
 
 function App() {
   return (
@@ -13,7 +14,8 @@ function App() {
             <Route path="/" element={<HomeView />} />
             <Route path="/tareas" element={<TasksView />} />
             <Route path="/pedidos" element={<OrdersView />} />
-            <Route path="/libros" element={<BooksView />} />
+            <Route path="/libros" element={
+              <BookProvider><BooksView /></BookProvider>} />
             {/* <Route path="/perfil" element={<ProfileView/>} /> */}
           </Routes>
         </div>
