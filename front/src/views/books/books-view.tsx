@@ -1,39 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useContext, useRef, useState, useEffect, useMemo } from "react";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { FaCirclePlus } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
 import { FaPlus } from "react-icons/fa6";
-import libraryData from "../../../../books.json";
+import { BookContext } from "../../context";
 
 export const BooksView = () => {
+  const {
+    books,
+    selectedBook,
+    setSelectedBook,
+    priceFilter,
+    setPriceFilter,
+    recentFilter,
+    setRecentFilter,
+    genreFilter,
+    setGenreFilter,
+  } = useContext(BookContext)!;
 
-  interface Author {
-    name: string;
-    otherBooks: string[];
-  }
-  
-  interface Book {
-    title: string;
-    pages: number;
-    genre: string;
-    cover: string;
-    synopsis: string;
-    year: number;
-    ISBN: string;
-    price: number;
-    author: Author;
-  }
-  
-  //estado de los botones de precio y fecha
-  const [priceFilter, setPriceFilter] = useState<string | null>(null);
-  const [recentFilter, setRecentFilter] = useState<string | null>(null);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-
-  //estado para la lista de generos a la izquierda
   const [genres, setGenres] = useState<{ genre: string; count: number }[]>([]);
-  const [genreFilter, setGenreFilter] = useState<string | null>(null);
-
-  //boton para abrir el modal
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState<boolean>(false);
+  const [isRecentDropdownOpen, setIsRecentDropdownOpen] = useState<boolean>(false);
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -49,17 +37,12 @@ export const BooksView = () => {
     }
   };
 
-  const [isPriceDropdownOpen, setIsPriceDropdownOpen] =
-    useState<boolean>(false);
-  const [isRecentDropdownOpen, setIsRecentDropdownOpen] =
-    useState<boolean>(false);
-
   useEffect(() => {
     // cuenta de libros por género
     const genreCount: { [key: string]: number } = {};
 
-    libraryData.library.forEach((entry) => {
-      const genre = entry.book.genre;
+    books.forEach((book) => {
+      const genre = book.genre;
       genreCount[genre] = (genreCount[genre] || 0) + 1;
     });
 
@@ -68,17 +51,57 @@ export const BooksView = () => {
       .sort((a, b) => a.count - b.count);
 
     setGenres(sortedGenres);
-  }, []);
+  }, [books]);
+
+
 
   const handlePriceFilterChange = (filter: string) => {
-    setPriceFilter((prev) => (prev === filter ? null : filter));
+    setPriceFilter(filter === priceFilter ? null : filter);
     setIsPriceDropdownOpen(false);
   };
 
   const handleRecentFilterChange = (filter: string) => {
-    setRecentFilter((prev) => (prev === filter ? null : filter));
+    setRecentFilter(filter === recentFilter ? null : filter);
     setIsRecentDropdownOpen(false);
   };
+
+  const filteredBooks = useMemo(() => {
+    return books
+      .filter((book) => {
+        if (genreFilter && book.genre !== genreFilter) return false;
+        if (
+          searchTerm &&
+          !(
+            book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            book.author.name.toLowerCase().includes(searchTerm.toLowerCase()) 
+          )
+        )
+          return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const bookA = a;
+        const bookB = b;
+
+        let priceComparison = 0;
+        if (priceFilter === "menor") {
+          priceComparison = bookA.price - bookB.price;
+        } else if (priceFilter === "mayor") {
+          priceComparison = bookB.price - bookA.price;
+        }
+
+        if (priceComparison === 0) {
+          if (recentFilter === "mas") {
+            return bookB.year - bookA.year;
+          } else if (recentFilter === "menos") {
+            return bookA.year - bookB.year;
+          }
+        }
+
+        return priceComparison;
+      });
+  }, [books, genreFilter, searchTerm, priceFilter, recentFilter]);
 
   return (
     <main className="h-full flex justify-between overflow-hidden">
@@ -103,7 +126,7 @@ export const BooksView = () => {
           >
             Todos los libros
             <span className="divider flex-grow mx-4 my-0 h-full"></span>
-            {libraryData.library.length}
+            {books.length}
           </li>
         </ul>
       </section>
@@ -113,9 +136,10 @@ export const BooksView = () => {
           <div className="w-full flex justify-start items-center gap-8">
             <div className="relative h-full">
               <input
-                placeholder="Search..."
+                placeholder="Buscar por nombre, género, autor..."
                 className="bg-transparent border border-neutral px-2 py-2 rounded-md w-80 h-12 outline-none"
                 name="search"
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <FaMagnifyingGlass className="absolute top-4 right-3 cursor-pointer" />
             </div>
@@ -212,58 +236,29 @@ export const BooksView = () => {
                 onClick={() => {
                   setPriceFilter(null);
                   setRecentFilter(null);
+                  setIsPriceDropdownOpen(false);
+                  setIsRecentDropdownOpen(false);
                 }}
               >
                 <IoClose size={20} />
               </button>
             )}
           </div>
-          <FaPlus size={26} className="cursor-pointer" onClick={openModal} />
         </div>
 
         <div className="grid grid-cols-4 gap-6 py-4 px-2 overflow-auto">
-          {libraryData.library
-            .filter((bookData) => {
-              const book = bookData.book;
-
-              if (genreFilter && book.genre !== genreFilter) {
-                return false;
-              }
-              return true;
-            })
-            .sort((a, b) => {
-              const bookA = a.book;
-              const bookB = b.book;
-
-              let priceComparison = 0;
-              if (priceFilter === "menor") {
-                priceComparison = bookA.price - bookB.price;
-              } else if (priceFilter === "mayor") {
-                priceComparison = bookB.price - bookA.price;
-              }
-
-              if (priceComparison === 0) {
-                if (recentFilter === "mas") {
-                  return bookB.year - bookA.year;
-                } else if (recentFilter === "menos") {
-                  return bookA.year - bookB.year;
-                }
-              }
-
-              return priceComparison;
-            })
-            .map((bookData, index) => (
-              <div
-                key={index}
-                className="w-full h-96 bg-cover bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
-                style={{ backgroundImage: `url(${bookData.book.cover})` }}
-                title={bookData.book.title}
-                onClick={() => {
-                  setSelectedBook(bookData.book);
-                  openModal();
-                }}
-              />
-            ))}
+          {filteredBooks.map((book, index) => (
+            <div
+              key={index}
+              className="w-full h-96 bg-cover bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
+              style={{ backgroundImage: `url(${book.cover})` }}
+              title={book.title}
+              onClick={() => {
+                setSelectedBook(book);
+                openModal();
+              }}
+            />
+          ))}
         </div>
         {/* Modal */}
         <dialog id="my_modal_3" ref={modalRef} className="modal h-full w-full">
@@ -300,7 +295,7 @@ export const BooksView = () => {
                 <p className="text-base italic mb-5">
                   {selectedBook?.synopsis}
                 </p>
-                
+
                 <div className="gap-5">
                   {/* Género */}
                   <p className="text-sm mb-3">
@@ -313,21 +308,27 @@ export const BooksView = () => {
                   <span className="font-semibold">ISBN:</span>{" "}
                   {selectedBook?.ISBN}
                 </p>
-                
+
                 {/* Páginas y Año */}
                 <p className="text-sm mb-3">
-                  <span className="font-semibold">Cant. Páginas: {selectedBook?.pages} </span>
+                  <span className="font-semibold">
+                    Cant. Páginas: {selectedBook?.pages}{" "}
+                  </span>
                 </p>
 
                 <p className="mb-3">
-                  <span className="font-semibold">Publicación: {selectedBook?.year}</span>
+                  <span className="font-semibold">
+                    Publicación: {selectedBook?.year}
+                  </span>
                 </p>
 
                 {/* Cod ISBN */}
 
                 {/* Stock y precio */}
                 <div className="flex justify-between items-center mt-4">
-                  <p className="text-xl font-bold text-right"> Precio:
+                  <p className="text-xl font-bold text-right">
+                    {" "}
+                    Precio:
                     {selectedBook?.price
                       ? ` $${selectedBook?.price.toFixed(2)}`
                       : "Price not available"}
