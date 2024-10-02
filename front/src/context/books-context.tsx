@@ -1,12 +1,6 @@
-import { createContext, ReactNode, useState } from "react";
-import libraryData from "../../../books.json";
+import { createContext, ReactNode, useState, useEffect } from "react";
 
-interface Author {
-  name: string;
-  otherBooks: string[];
-}
-
-interface Book {
+type Book = {
   title: string;
   pages: number;
   genre: string;
@@ -15,10 +9,10 @@ interface Book {
   year: number;
   ISBN: string;
   price: number;
-  author: Author;
+  author: string;
 }
 
-interface BookContextProps {
+type BookContextProps = {
   books: Book[];
   selectedBook: Book | null;
   setSelectedBook: (book: Book | null) => void;
@@ -37,7 +31,27 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [recentFilter, setRecentFilter] = useState<string | null>(null);
   const [genreFilter, setGenreFilter] = useState<string | null>(null);
-  const books: Book[] = libraryData.library.map((entry) => entry.book);
+  const [books, setBooks] = useState<Book[]>([])
+
+  // traer los libros de la base de datos :)
+  const fetchBooks = async () => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/books`);
+      if(!response.ok){
+        throw new Error("Error al traer los libros");
+      }
+      const data: Book[] = await response.json();
+
+      console.log(data)
+      setBooks(data)
+    } catch (error) {
+      console.log("Un error del fetch: ", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchBooks();
+  }, []) // ejecuta la funcion que trae los libros cuando se inicia el componente :)
 
   return (
     <BookContext.Provider

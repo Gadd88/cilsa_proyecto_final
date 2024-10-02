@@ -74,7 +74,7 @@ export const BooksView = () => {
           !(
             book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             book.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            book.author.name.toLowerCase().includes(searchTerm.toLowerCase()) 
+            book.author.toLowerCase().includes(searchTerm.toLowerCase()) 
           )
         )
           return false;
@@ -288,7 +288,7 @@ export const BooksView = () => {
                 {/* Autor */}
                 <p className="text-sm mb-3">
                   <span className="font-semibold">Author:</span>{" "}
-                  {selectedBook?.author?.name}
+                  {selectedBook?.author}
                 </p>
 
                 {/* Sinopsis */}
