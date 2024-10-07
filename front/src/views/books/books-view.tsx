@@ -1,8 +1,7 @@
 import { useContext, useRef, useState, useEffect, useMemo } from "react";
 import { FaMagnifyingGlass } from "react-icons/fa6";
-import { FaCirclePlus } from "react-icons/fa6";
+import { FaCheck } from "react-icons/fa6";
 import { IoClose } from "react-icons/io5";
-import { FaPlus } from "react-icons/fa6";
 import { BookContext } from "../../context";
 
 export const BooksView = () => {
@@ -20,8 +19,6 @@ export const BooksView = () => {
 
   const [genres, setGenres] = useState<{ genre: string; count: number }[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState<boolean>(false);
-  const [isRecentDropdownOpen, setIsRecentDropdownOpen] = useState<boolean>(false);
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
@@ -53,16 +50,14 @@ export const BooksView = () => {
     setGenres(sortedGenres);
   }, [books]);
 
-
-
   const handlePriceFilterChange = (filter: string) => {
     setPriceFilter(filter === priceFilter ? null : filter);
-    setIsPriceDropdownOpen(false);
+    // setIsPriceDropdownOpen(false);
   };
 
   const handleRecentFilterChange = (filter: string) => {
     setRecentFilter(filter === recentFilter ? null : filter);
-    setIsRecentDropdownOpen(false);
+    // setIsRecentDropdownOpen(false);
   };
 
   const filteredBooks = useMemo(() => {
@@ -74,7 +69,7 @@ export const BooksView = () => {
           !(
             book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             book.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            book.author.name.toLowerCase().includes(searchTerm.toLowerCase()) 
+            book.author.toLowerCase().includes(searchTerm.toLowerCase())
           )
         )
           return false;
@@ -104,8 +99,8 @@ export const BooksView = () => {
   }, [books, genreFilter, searchTerm, priceFilter, recentFilter]);
 
   return (
-    <main className="h-full flex justify-between overflow-hidden">
-      <section className="w-1/6 h-full flex flex-col py-2 px-4">
+    <main className="h-full flex flex-col lg:flex-row justify-between overflow-auto lg:overflow-hidden">
+      <section className="w-full lg:w-1/6 h-auto lg:h-full flex-col py-2 px-4 hidden lg:flex">
         <h1 className="text-xl">Géneros</h1>
         <div className="divider my-2"></div>
         <ul className="text-sm flex flex-col gap-2 [&>li]:cursor-pointer">
@@ -130,114 +125,103 @@ export const BooksView = () => {
           </li>
         </ul>
       </section>
-      <div className="divider divider-horizontal m-0"></div>
-      <section className="w-5/6 h-auto flex flex-col justify-start gap-5 py-2 px-4">
-        <div className="flex justify-between items-center">
-          <div className="w-full flex justify-start items-center gap-8">
-            <div className="relative h-full">
-              <input
-                placeholder="Buscar por nombre, género, autor..."
-                className="bg-transparent border border-neutral px-2 py-2 rounded-md w-80 h-12 outline-none"
-                name="search"
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <FaMagnifyingGlass className="absolute top-4 right-3 cursor-pointer" />
-            </div>
 
-            <div className="relative dropdown-hover">
-              <div
-                tabIndex={0}
-                role="button"
-                className="btn btn-ghost h-8 flex gap-4 border border-neutral"
-                onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
+      <div className="divider divider-horizontal border border-neutral hidden md:block m-0 w-0 my-2"></div>
+
+      <section className="w-full lg:w-5/6 h-auto flex flex-col justify-start gap-5 py-2 px-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="relative w-full sm:w-[33rem] h-12">
+            <input
+              placeholder="Buscar por nombre, género, autor..."
+              className="bg-transparent border border-neutral px-2 py-2 rounded-md w-full h-12 outline-none"
+              name="search"
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <FaMagnifyingGlass className="absolute top-4 right-3 cursor-pointer" />
+          </div>
+
+          <div className="flex flex-wrap gap-4">
+            {/* Filtro de generos para telefonos */}
+            <div className="flex-grow md:flex-1">
+              <select
+                className="select select-bordered border-neutral w-full max-w-xs lg:hidden"
+                value={genreFilter || ""}
+                onChange={(e) => setGenreFilter(e.target.value)}
               >
-                Precio
-                <span className="divider divider-vertical border border-neutral"></span>
-                {!priceFilter && <FaCirclePlus />}
-                {priceFilter && (
-                  <p className="badge border-neutral py-3 rounded-md">
-                    {priceFilter === "menor" ? "Menor Precio" : "Mayor Precio"}
-                  </p>
-                )}
-              </div>
-              {isPriceDropdownOpen && (
-                <ul className="dropdown-content menu bg-base-100 rounded-box z-[1] w-36 py-2 px-0 shadow absolute top-full">
-                  <li>
-                    <label className="flex items-center justify-evenly cursor-pointer px-0">
-                      <p>Menor Precio</p>
-                      <input
-                        type="checkbox"
-                        checked={priceFilter === "menor"}
-                        onChange={() => handlePriceFilterChange("menor")}
-                      />
-                    </label>
-                  </li>
-                  <li>
-                    <label className="flex items-center justify-evenly cursor-pointer  px-0">
-                      <p>Mayor Precio</p>
-                      <input
-                        type="checkbox"
-                        checked={priceFilter === "mayor"}
-                        onChange={() => handlePriceFilterChange("mayor")}
-                      />
-                    </label>
-                  </li>
-                </ul>
-              )}
+                <option disabled value="">
+                  Selecciona un género
+                </option>
+                {genres.map((genre, index) => (
+                  <option key={index} value={genre.genre}>
+                    {genre.genre} ({genre.count})
+                  </option>
+                ))}
+                <option value={""}>Todos los libros ({books.length})</option>
+              </select>
             </div>
 
-            <div className="relative">
-              <div
-                tabIndex={0}
-                role="button"
-                className="btn btn-ghost h-8 border flex gap-4 border-neutral"
-                onClick={() => setIsRecentDropdownOpen(!isRecentDropdownOpen)}
+            {/* Filtro de Precio */}
+            <div className="flex-grow md:flex-1">
+              <select
+                className="select select-bordered border-neutral w-full max-w-xs"
+                value={priceFilter || ""}
+                onChange={(e) => handlePriceFilterChange(e.target.value)}
               >
-                Fecha
-                <span className="divider divider-vertical border border-neutral"></span>
-                {!recentFilter && <FaCirclePlus />}
-                {recentFilter && (
-                  <p className="badge border-neutral py-3 rounded-md">
-                    {recentFilter === "menos"
-                      ? "Menos Recientes"
-                      : "Más Recientes"}
-                  </p>
-                )}
-              </div>
-              {isRecentDropdownOpen && (
-                <ul className="dropdown-content menu bg-base-100 rounded-b-lg z-[1] w-36 pt-2 px-0 shadow absolute top-full">
-                  <li>
-                    <label className="flex items-center justify-evenly cursor-pointer px-0">
-                      <p>Menos Recientes</p>
-                      <input
-                        type="checkbox"
-                        checked={recentFilter === "menos"}
-                        onChange={() => handleRecentFilterChange("menos")}
-                      />
-                    </label>
-                  </li>
-                  <li>
-                    <label className="flex items-center justify-evenly cursor-pointer px-0">
-                      <p>Más Recientes</p>
-                      <input
-                        type="checkbox"
-                        checked={recentFilter === "mas"}
-                        onChange={() => handleRecentFilterChange("mas")}
-                      />
-                    </label>
-                  </li>
-                </ul>
-              )}
+                <option disabled value="">
+                  Precio
+                </option>
+                <option
+                  value="menor"
+                  className={priceFilter === "menor" ? "font-semibold" : ""}
+                >
+                  Menor Precio
+                </option>
+                <option
+                  value="mayor"
+                  className={priceFilter === "mayor" ? "font-semibold" : ""}
+                >
+                  Mayor Precio
+                </option>
+              </select>
             </div>
 
-            {(priceFilter || recentFilter) && (
+            {/* Filtro de Fecha */}
+            <div className="flex-grow md:flex-1">
+              <select
+                className="select select-bordered border-neutral w-full max-w-xs"
+                value={recentFilter || ""}
+                onChange={(e) => handleRecentFilterChange(e.target.value)}
+              >
+                <option disabled value="">
+                  Fecha
+                </option>
+                <option
+                  value="menos"
+                  className={recentFilter === "menos" ? "font-semibold" : ""}
+                >
+                  {recentFilter === "menos" && (
+                    <FaCheck className="inline mr-2" />
+                  )}{" "}
+                  Menos Recientes
+                </option>
+                <option
+                  value="mas"
+                  className={recentFilter === "mas" ? "font-semibold" : ""}
+                >
+                  {recentFilter === "mas" && (
+                    <FaCheck className="inline mr-2" />
+                  )}{" "}
+                  Más Recientes
+                </option>
+              </select>
+            </div>
+            {(priceFilter || recentFilter || genreFilter) && (
               <button
-                className="badge border-neutral h-8 py-2 flex items-center rounded-md cursor-pointer"
+                className="badge border-neutral h-12 py-2 flex items-center rounded-md cursor-pointer"
                 onClick={() => {
                   setPriceFilter(null);
                   setRecentFilter(null);
-                  setIsPriceDropdownOpen(false);
-                  setIsRecentDropdownOpen(false);
+                  setGenreFilter("");
                 }}
               >
                 <IoClose size={20} />
@@ -246,11 +230,12 @@ export const BooksView = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-6 py-4 px-2 overflow-auto">
+        {/* Grid de libros responsive */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-4 px-2 overflow-auto sm:px-24 md:pr-6 md:px-0">
           {filteredBooks.map((book, index) => (
             <div
               key={index}
-              className="w-full h-96 bg-cover bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
+              className="w-full h-96 bg-cover bg-no-repeat bg-center transform transition-transform duration-300 hover:scale-105 cursor-pointer"
               style={{ backgroundImage: `url(${book.cover})` }}
               title={book.title}
               onClick={() => {
@@ -260,16 +245,16 @@ export const BooksView = () => {
             />
           ))}
         </div>
-        {/* Modal */}
+
+        {/* Modal responsive */}
         <dialog id="my_modal_3" ref={modalRef} className="modal h-full w-full">
-          <div className="modal-box max-w-2xl">
+          <div className="modal-box max-w-full lg:max-w-2xl">
             <button
               className="btn btn-sm btn-ghost absolute right-2 top-2"
               onClick={closeModal}
             >
               ✕
             </button>
-
             <div className="flex flex-col md:flex-row gap-4">
               <div className="w-full md:w-1/3 flex justify-center items-center">
                 <img
@@ -278,68 +263,32 @@ export const BooksView = () => {
                   className="max-w-full h-auto rounded-lg shadow-md"
                 />
               </div>
-
               <div className="w-full md:w-2/3 text-left">
-                {/* Título del libro */}
                 <h2 className="text-2xl font-bold mb-5">
                   {selectedBook?.title}
                 </h2>
-
-                {/* Autor */}
-                <p className="text-sm mb-3">
-                  <span className="font-semibold">Author:</span>{" "}
-                  {selectedBook?.author?.name}
-                </p>
-
-                {/* Sinopsis */}
-                <p className="text-base italic mb-5">
-                  {selectedBook?.synopsis}
-                </p>
-
-                <div className="gap-5">
-                  {/* Género */}
-                  <p className="text-sm mb-3">
+                <p className="text-sm mb-3">{selectedBook?.synopsis}</p>
+                <div className="sm:grid sm:grid-cols-2 md:flex md:flex-col">
+                  <p className="text-sm mb-3 col-span-1">
+                    <span className="font-semibold">Autor:</span>{" "}
+                    {selectedBook?.author}
+                  </p>
+                  <p className="text-sm mb-3 col-span-1">
                     <span className="font-semibold">Género:</span>{" "}
                     {selectedBook?.genre}
                   </p>
-                </div>
-
-                <p className="text-sm mb-3">
-                  <span className="font-semibold">ISBN:</span>{" "}
-                  {selectedBook?.ISBN}
-                </p>
-
-                {/* Páginas y Año */}
-                <p className="text-sm mb-3">
-                  <span className="font-semibold">
-                    Cant. Páginas: {selectedBook?.pages}{" "}
-                  </span>
-                </p>
-
-                <p className="mb-3">
-                  <span className="font-semibold">
-                    Publicación: {selectedBook?.year}
-                  </span>
-                </p>
-
-                {/* Cod ISBN */}
-
-                {/* Stock y precio */}
-                <div className="flex justify-between items-center mt-4">
-                  <p className="text-xl font-bold text-right">
-                    {" "}
-                    Precio:
-                    {selectedBook?.price
-                      ? ` $${selectedBook?.price.toFixed(2)}`
-                      : "Price not available"}
+                  <p className="text-sm mb-3 col-span-1">
+                    <span className="font-semibold">Publicado en :</span>{" "}
+                    {selectedBook?.year}
+                  </p>
+                  <p className="text-sm mb-3 col-span-1">
+                    <span className="font-semibold">Precio:</span> ${" "}
+                    {selectedBook?.price}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button>close</button>
-          </form>
         </dialog>
       </section>
     </main>
