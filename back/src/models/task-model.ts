@@ -14,7 +14,8 @@ const TaskSchema = new Schema({
     estado:{
         type:String,
         required: true,
-        enum: ['Pendiente', 'En progreso', 'Completada']
+        enum: ['Pendiente', 'En progreso', 'Completada'],
+        default: 'Pendiente'
     },
     fecha_creacion:{
         type:Date,

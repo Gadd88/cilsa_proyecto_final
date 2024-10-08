@@ -10,11 +10,10 @@ createRoot(document.getElementById('root')!).render(
       <OrderProvider>
         <TaskProvider>
           <BookProvider>
-
+            <App />
           </BookProvider>
         </TaskProvider>
       </OrderProvider>
-      <App />
     </AuthProvider>
   </StrictMode>,
 )

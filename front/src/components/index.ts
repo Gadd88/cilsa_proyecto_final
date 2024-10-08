@@ -1,2 +1,5 @@
 export * from './navbar'
 export * from './footer'
+export * from './resume-card'
+export * from './task-form'
+export * from './task-item'
