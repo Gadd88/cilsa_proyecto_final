@@ -41,8 +41,6 @@ export const BookProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Error al traer los libros");
       }
       const data: Book[] = await response.json();
-
-      console.log(data)
       setBooks(data)
     } catch (error) {
       console.log("Un error del fetch: ", error);
