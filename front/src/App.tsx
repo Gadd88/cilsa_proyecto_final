@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HomeView } from "./views/home/home-view";
-import { BooksView, OrdersView, TasksView } from "./views";
-import { Footer, Navbar } from "./components";
-import { BookProvider } from "./context/books-context";
+import { AuthView, BooksView, OrdersView, TasksView } from "./views";
+import { Footer, Navbar, PrivateRoute } from "./components";
 
 function App() {
   return (
@@ -12,10 +11,10 @@ function App() {
         <div className="flex-grow overflow-auto">
           <Routes>
             <Route path="/" element={<HomeView />} />
-            <Route path="/tareas" element={<TasksView />} />
-            <Route path="/pedidos" element={<OrdersView />} />
-            <Route path="/libros" element={
-              <BookProvider><BooksView /></BookProvider>} />
+            <Route path='/auth' element={<AuthView/>}></Route>
+            <Route path="/tareas" element={<PrivateRoute><TasksView /></PrivateRoute>} />
+            <Route path="/pedidos" element={<PrivateRoute><OrdersView /></PrivateRoute>} />
+            <Route path="/libros" element={<BooksView/>} />
             {/* <Route path="/perfil" element={<ProfileView/>} /> */}
           </Routes>
         </div>

@@ -1,4 +1,5 @@
 import { createContext, Dispatch, ReactNode, useEffect, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 export type TaskType = {
     nombre: string
@@ -21,6 +22,8 @@ export const TaskContext = createContext({} as TaskContextType)
 
 export const TaskProvider = ({children}:{children: ReactNode}) => {
 
+    const { userData } = useAuth()
+
     const [taskList, setTaskList] = useState<TaskType[]>([])
 
     const fetchTasks = async () => {
@@ -29,7 +32,8 @@ export const TaskProvider = ({children}:{children: ReactNode}) => {
             if(!response.ok) throw new Error('Error al traer las tareas')
             const result: TaskType[] = await response.json()
             if(Array.isArray(result)){
-                setTaskList(result)
+                const userTasks = result.filter(task => task?.usuario_id === userData?._id)
+                setTaskList(userTasks)
             }else{
                 console.error('No es array', result)
             }

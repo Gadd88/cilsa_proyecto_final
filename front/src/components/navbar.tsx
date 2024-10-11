@@ -1,12 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { IoMenuSharp, IoClose  } from "react-icons/io5";
+import { useAuth } from "../hooks/useAuth";
 
 
 export const Navbar = () => {
   const location = useLocation();
   const viewName = location.pathname.slice(1, location.pathname.length);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const {handleLogout, userData } = useAuth()
 
   const closeDrawer = () => setDrawerOpen(false);
 
@@ -33,7 +35,8 @@ export const Navbar = () => {
               <a className="text-2xl capitalize">{viewName}</a>
             </div>
             <div className="navbar-center"></div>
-            <div className="navbar-end">
+            {
+              userData && (<div className="navbar-end">
               <div className="dropdown dropdown-end">
                 <div
                   tabIndex={0}
@@ -52,17 +55,18 @@ export const Navbar = () => {
                   className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 p-2 shadow"
                 >
                   <li>
-                    <a className="justify-between">
+                    <Link to={''} className="justify-between">
                       Profile
                       <span className="badge">New</span>
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a>Logout</a>
+                    <button onClick={handleLogout}>Logout</button>
                   </li>
                 </ul>
               </div>
-            </div>
+            </div>)
+            }
           </nav>
         </div>
         <div className="drawer-side">
